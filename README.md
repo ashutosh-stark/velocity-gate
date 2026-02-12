@@ -1,4 +1,3 @@
-````md
 # 🛡️ VelocityGate
 
 ### Stop AI Agents & Scrapers Dead in Their Tracks
@@ -45,7 +44,7 @@ VelocityGate is a **zero-configuration Spring Boot Starter** that acts as an **A
 git clone https://github.com/YOUR_USERNAME/velocity-gate.git
 cd velocity-gate
 ./gradlew publishToMavenLocal
-````
+```
 
 ### Step 2: Add the Dependency
 
@@ -96,10 +95,10 @@ VelocityGate injects a `BotBouncerFilter` with `Ordered.HIGHEST_PRECEDENCE`.
 
 This ensures it runs before:
 
-* Authentication
-* Logging
-* Business logic
-* Controllers
+- Authentication  
+- Logging  
+- Business logic  
+- Controllers  
 
 ### Request Flow
 
@@ -123,15 +122,15 @@ sequenceDiagram
 
 ## 🚦 Performance
 
-**Memory Footprint:**
+**Memory Footprint:**  
 Uses a sliding window algorithm to evict stale IP records every 5 seconds.
 
-**Concurrency:**
+**Concurrency:**  
 Thread-safe via:
 
-* `ConcurrentHashMap`
-* Atomic counters
-* `ReentrantReadWriteLock`
+- `ConcurrentHashMap`
+- Atomic counters
+- `ReentrantReadWriteLock`
 
 Optimized for high-concurrency environments.
 
@@ -141,23 +140,26 @@ Optimized for high-concurrency environments.
 
 Contributions are welcome!
 
-1. Fork the repository
-2. Create a feature branch
+1. Fork the repository  
+2. Create a feature branch  
 
    ```bash
    git checkout -b feature/amazing-feature
    ```
-3. Commit changes
+
+3. Commit changes  
 
    ```bash
    git commit -m "Add amazing feature"
    ```
-4. Push branch
+
+4. Push branch  
 
    ```bash
    git push origin feature/amazing-feature
    ```
-5. Open a Pull Request
+
+5. Open a Pull Request  
 
 See `CONTRIBUTING.md` for details.
 
@@ -165,25 +167,5 @@ See `CONTRIBUTING.md` for details.
 
 ## 📄 License
 
-Distributed under the Apache 2.0 License.
+Distributed under the Apache 2.0 License.  
 See `LICENSE` for more information.
-
-```
-
----
-
-### Why This Structure Is Correct
-
-- `#` → Project title  
-- `##` → Major sections  
-- `###` → Subsections (like Step 1, Step 2)  
-- `####` → Maven/Gradle breakdown  
-
-This keeps GitHub’s sidebar navigation clean and professional.
-
-If you'd like, I can now:
-
-- Make it **enterprise-grade polished**
-- Or make it **more product/marketing focused**
-- Or restructure it to match top 1% GitHub open-source READMEs** 🚀
-```
