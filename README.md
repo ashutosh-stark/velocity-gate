@@ -1,7 +1,8 @@
 # 🛡️ VelocityGate
 
 ### Stop AI Agents & Scrapers Dead in Their Tracks
-**High-performance, drop-in middleware for Spring Boot 3.x that blocks malicious bot traffic before it hits your business logic.**
+
+**VelocityGate** is a high-performance, drop-in Spring Boot 3.x starter that blocks malicious bots, AI agents, scrapers, and high-velocity traffic *before* they reach your business logic.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
@@ -11,73 +12,111 @@
 
 ## 🚨 The Problem
 
-AI agents, scrapers, and headless browsers are hammering your APIs.
+Modern APIs are constantly targeted by:
 
-- They burn your LLM tokens & API credits  
-- They scrape your proprietary data  
-- They slow down your database for real users  
+- 🤖 AI agents consuming expensive LLM tokens  
+- 🕷️ Scrapers extracting proprietary data  
+- ⚡ Headless browsers generating high request velocity  
+- 📉 Traffic spikes degrading real user experience  
 
-You need a firewall that sits **in front of your application logic**.
+Traditional rate limiting often runs too late (inside business logic), requires external infrastructure (Redis), or adds operational complexity.
+
+You need protection at the **edge of your application**.
 
 ---
 
 ## 🚀 The Solution: VelocityGate
 
-VelocityGate is a **zero-configuration Spring Boot Starter** that acts as an **AI Firewall**, intercepting requests at the servlet filter level (`Ordered.HIGHEST_PRECEDENCE`).
+VelocityGate is a **zero-configuration Spring Boot Starter** that acts as an **AI Firewall**.
+
+It installs a servlet filter at `Ordered.HIGHEST_PRECEDENCE`, ensuring malicious traffic is blocked **before authentication, logging, security filters, or controllers execute**.
 
 ### ✨ Key Features
 
-- ⚡ Zero latency (in-memory, lock-efficient design)
-- 🤖 Headless browser detection (Puppeteer, Selenium, Playwright)
-- ⏱️ Velocity limiting (default: >50 req/sec per IP)
-- 🔌 Plug & Play (no Redis, no database)
+- ⚡ **Ultra Low Latency** — In-memory, lock-efficient design  
+- 🤖 **Headless Browser Detection** — Blocks Puppeteer, Selenium, Playwright, and common AI user agents  
+- ⏱️ **Velocity Limiting** — Automatically blocks IPs exceeding human-like request patterns (default: >50 req/sec)  
+- 🔌 **Plug & Play** — No Redis. No database. No external systems  
+- 🧵 **Thread-Safe by Design** — Built using `ConcurrentHashMap`, atomic counters, and fine-grained locking  
 
 ---
 
 ## 📦 Installation
 
-> ⚠️ Currently in Beta
+VelocityGate is distributed via **JitPack**.
 
-### Step 1: Build Locally
+---
 
-```bash
-git clone https://github.com/YOUR_USERNAME/velocity-gate.git
-cd velocity-gate
-./gradlew publishToMavenLocal
+### 🟢 Gradle Setup
+
+#### Step 1: Add the JitPack repository
+
+Add this to your root `build.gradle` (or `settings.gradle`):
+
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url '[https://jitpack.io](https://jitpack.io)' }
+    }
+}
 ```
 
-### Step 2: Add the Dependency
+#### Step 2: Add the Dependency
 
-#### Maven (`pom.xml`)
+```groovy
+dependencies {
+    implementation 'com.github.ashutosh-stark:velocity-gate:v1.0.0'
+}
+```
+
+Refresh your Gradle project:
+
+```bash
+./gradlew build
+```
+
+---
+
+### 🔵 Maven Setup
+
+#### Step 1: Add the JitPack repository
+
+Add this inside `<repositories>` in your `pom.xml`:
+
+```xml
+<repositories>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
+    </repository>
+</repositories>
+```
+
+#### Step 2: Add the Dependency
 
 ```xml
 <dependency>
-    <groupId>com.velocitygate</groupId>
+    <groupId>com.github.ashutosh-stark</groupId>
     <artifactId>velocity-gate</artifactId>
-    <version>1.0.0</version>
+    <version>v1.0.0</version>
 </dependency>
 ```
 
-#### Gradle (`build.gradle`)
+Build the project:
 
-```groovy
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
-dependencies {
-    implementation 'com.velocitygate:velocity-gate:1.0.0'
-}
+```bash
+mvn clean install
 ```
 
 ---
 
 ## ⚙️ Configuration
 
-VelocityGate works out-of-the-box with sensible defaults.
+VelocityGate works out-of-the-box with secure defaults.
 
-Override in `application.properties`:
+Override settings in `application.properties` if needed:
 
 ```properties
 # Enable or disable the firewall (default: true)
@@ -87,18 +126,21 @@ velocitygate.enabled=true
 # velocitygate.limit=50
 ```
 
+No configuration is required for basic protection.
+
 ---
 
 ## 🏗️ Architecture
 
-VelocityGate injects a `BotBouncerFilter` with `Ordered.HIGHEST_PRECEDENCE`.
+VelocityGate injects a `BotBouncerFilter` at `Ordered.HIGHEST_PRECEDENCE`.
 
-This ensures it runs before:
+This guarantees execution before:
 
-- Authentication  
-- Logging  
-- Business logic  
+- Authentication filters  
+- Logging filters  
+- Security chains  
 - Controllers  
+- Business logic  
 
 ### Request Flow
 
@@ -112,7 +154,7 @@ sequenceDiagram
     
     alt Malicious or High Velocity
         VelocityGate-->>Client: 403 Forbidden
-    else Safe
+    else Safe Traffic
         VelocityGate->>App: Forward Request
         App-->>Client: 200 OK
     end
@@ -122,38 +164,40 @@ sequenceDiagram
 
 ## 🚦 Performance
 
-**Memory Footprint:**  
-Uses a sliding window algorithm to evict stale IP records every 5 seconds.
+**Memory Footprint**  
+Uses a sliding-window algorithm to automatically evict stale IP records every 5 seconds.
 
-**Concurrency:**  
-Thread-safe via:
+**Concurrency Model**  
+Designed for high-throughput environments using:
 
-- `ConcurrentHashMap`
-- Atomic counters
-- `ReentrantReadWriteLock`
+- `ConcurrentHashMap`  
+- Atomic counters  
+- `ReentrantReadWriteLock`  
 
-Optimized for high-concurrency environments.
+No external dependencies.  
+No network calls.  
+No added latency layers.
 
 ---
 
 ## 🤝 Contributing
 
-Contributions are welcome!
+Contributions are welcome and appreciated.
 
 1. Fork the repository  
-2. Create a feature branch  
+2. Create your feature branch  
 
    ```bash
    git checkout -b feature/amazing-feature
    ```
 
-3. Commit changes  
+3. Commit your changes  
 
    ```bash
    git commit -m "Add amazing feature"
    ```
 
-4. Push branch  
+4. Push to your branch  
 
    ```bash
    git push origin feature/amazing-feature
@@ -161,7 +205,7 @@ Contributions are welcome!
 
 5. Open a Pull Request  
 
-See `CONTRIBUTING.md` for details.
+Please ensure documentation updates and test coverage where applicable.
 
 ---
 
