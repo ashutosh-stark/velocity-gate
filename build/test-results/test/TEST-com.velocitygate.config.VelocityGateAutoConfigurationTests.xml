@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="VelocityGateAutoConfiguration Tests" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-02-12T06:34:06" hostname="LM0006776" time="0.229">
+  <properties/>
+  <testcase name="Creates singleton instances" classname="com.velocitygate.config.VelocityGateAutoConfigurationTests" time="0.216"/>
+  <testcase name="Wires dependencies correctly" classname="com.velocitygate.config.VelocityGateAutoConfigurationTests" time="0.007"/>
+  <testcase name="Auto-configures all beans" classname="com.velocitygate.config.VelocityGateAutoConfigurationTests" time="0.006"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="VelocityCache Tests" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-02-12T06:34:06" hostname="LM0006776" time="0.023">
+  <properties/>
+  <testcase name="Clears all cached data" classname="com.velocitygate.cache.VelocityCacheTests" time="0.01"/>
+  <testcase name="Counts multiple requests from the same IP within the sliding window" classname="com.velocitygate.cache.VelocityCacheTests" time="0.001"/>
+  <testcase name="Tracks the correct number of distinct IP addresses" classname="com.velocitygate.cache.VelocityCacheTests" time="0.0"/>
+  <testcase name="Handles blank IP addresses gracefully" classname="com.velocitygate.cache.VelocityCacheTests" time="0.001"/>
+  <testcase name="Records a single request" classname="com.velocitygate.cache.VelocityCacheTests" time="0.0"/>
+  <testcase name="Tracks requests from multiple IPs independently" classname="com.velocitygate.cache.VelocityCacheTests" time="0.0"/>
+  <testcase name="Returns zero for untracked IP addresses" classname="com.velocitygate.cache.VelocityCacheTests" time="0.0"/>
+  <testcase name="Maintains thread-safety with concurrent requests" classname="com.velocitygate.cache.VelocityCacheTests" time="0.007"/>
+  <testcase name="Handles null IP addresses gracefully" classname="com.velocitygate.cache.VelocityCacheTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

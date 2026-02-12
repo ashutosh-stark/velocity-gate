@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ThreatAnalyzer Tests" tests="21" skipped="0" failures="0" errors="0" timestamp="2026-02-12T06:34:07" hostname="LM0006776" time="0.011">
+  <properties/>
+  <testcase name="Retrieves current velocity for IP" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Allows legitimate Safari user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Allows normal request velocity" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Flags null user agent as malicious" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects Python user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects PhantomJS user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Handles blank IP gracefully" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects velocity anomaly exceeding threshold" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Allows legitimate Chrome user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Passes both checks for legitimate requests" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Flags empty user agent as malicious" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects Selenium user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Identifies headless bot combined checks" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Detects HeadlessChrome user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects Puppeteer user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Flags blank user agent as malicious" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Handles null IP gracefully" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Detects curl user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Detects wget user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <testcase name="Allows legitimate Firefox user agent" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.001"/>
+  <testcase name="Resets the velocity cache" classname="com.velocitygate.service.ThreatAnalyzerTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

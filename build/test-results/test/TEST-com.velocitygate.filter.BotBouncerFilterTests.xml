@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="BotBouncerFilter Tests" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-02-12T06:34:07" hostname="LM0006776" time="0.005">
+  <properties/>
+  <testcase name="Allows legitimate Firefox request" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Flags empty user agent as malicious" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Detects velocity anomaly" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Creates filter instance" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Detects Puppeteer as malicious" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.001"/>
+  <testcase name="Flags null user agent as malicious" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Allows legitimate Chrome request" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <testcase name="Detects HeadlessChrome as malicious" classname="com.velocitygate.filter.BotBouncerFilterTests" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
