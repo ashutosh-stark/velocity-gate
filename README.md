@@ -67,7 +67,7 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ashutosh-stark:velocity-gate:v1.0.0'
+    implementation 'com.github.ashutosh-stark:velocity-gate:v1.1.0'
 }
 ```
 
@@ -100,7 +100,7 @@ Add this inside `<repositories>` in your `pom.xml`:
 <dependency>
     <groupId>com.github.ashutosh-stark</groupId>
     <artifactId>velocity-gate</artifactId>
-    <version>v1.0.0</version>
+    <version>v1.1.0</version>
 </dependency>
 ```
 
