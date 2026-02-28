@@ -8,20 +8,21 @@
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg)](https://spring.io/projects/spring-boot)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 
+## ☁️ VelocityGate Cloud (Waitlist)
+**Working on a non-Java environment?** We are currently building a language-agnostic **Go Proxy** version for Node.js, Python, and Ruby applications.
+👉 **[Join the Waitlist for Early Access](https://ashutosh-stark.github.io/velocitygate-cloud)**
+
 ---
 
 ## 🚨 The Problem
 
 Modern APIs are constantly targeted by:
+- 🤖 **AI agents** consuming expensive LLM tokens
+- 🕷️ **Scrapers** extracting proprietary data
+- ⚡ **Headless browsers** generating high request velocity
+- 📉 **Traffic spikes** degrading real user experience
 
-- 🤖 AI agents consuming expensive LLM tokens  
-- 🕷️ Scrapers extracting proprietary data  
-- ⚡ Headless browsers generating high request velocity  
-- 📉 Traffic spikes degrading real user experience  
-
-Traditional rate limiting often runs too late (inside business logic), requires external infrastructure (Redis), or adds operational complexity.
-
-You need protection at the **edge of your application**.
+Traditional rate limiting often runs too late, requires external infrastructure (Redis), or adds operational complexity. You need protection at the **edge of your application**.
 
 ---
 
