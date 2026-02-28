@@ -68,7 +68,7 @@ dependencyResolutionManagement {
 
 ```groovy
 dependencies {
-    implementation 'com.github.ashutosh-stark:velocity-gate:v1.1.0'
+    implementation 'com.github.ashutosh-stark:velocity-gate:v1.1.1'
 }
 ```
 
@@ -101,7 +101,7 @@ Add this inside `<repositories>` in your `pom.xml`:
 <dependency>
     <groupId>com.github.ashutosh-stark</groupId>
     <artifactId>velocity-gate</artifactId>
-    <version>v1.1.0</version>
+    <version>v1.1.1</version>
 </dependency>
 ```
 
@@ -207,6 +207,11 @@ Contributions are welcome and appreciated.
 5. Open a Pull Request  
 
 Please ensure documentation updates and test coverage where applicable.
+
+## 🛡️ Security & Version Notes (v1.1.1)
+- **IP Spoofing Protection**: Fixed a vulnerability where `X-Forwarded-For` was blindly trusted. Added `velocitygate.proxy.trusted` property (default: `false`) to ensure IP extraction is secure by default.
+- **Memory Optimization**: Moved bot signatures to static constants to reduce GC pressure during high-concurrency attacks.
+- **Lock-Free Stability**: Verified atomic updates for sliding-window deques to prevent race conditions at 100K+ RPS.
 
 ---
 
