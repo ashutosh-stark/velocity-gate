@@ -32,7 +32,7 @@ class BotBouncerFilterTests {
 
     @BeforeEach
     void setUp() throws IOException {
-        botBouncerFilter = new BotBouncerFilter(1000L, 50, true);
+        botBouncerFilter = new BotBouncerFilter(1000L, 50, true, true);
         request = mock(HttpServletRequest.class);
         response = mock(HttpServletResponse.class);
         filterChain = mock(FilterChain.class);

@@ -7,9 +7,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -29,10 +33,11 @@ public class BotBouncerFilter extends OncePerRequestFilter {
     private static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
     private static final String USER_AGENT_HEADER = "User-Agent";
 
-    /**
-     * Bot and headless browser signatures for User-Agent detection.
-     */
-    private static final List<String> BOT_SIGNATURES = List.of(
+        /**
+         * Bot and headless browser signatures for User-Agent detection.
+         * Using a static final Set to avoid allocations per request.
+         */
+        private static final Set<String> BOT_SIGNATURES = Set.of(
             "puppeteer",
             "selenium",
             "playwright",
@@ -47,12 +52,14 @@ public class BotBouncerFilter extends OncePerRequestFilter {
             "curl",
             "wget",
             "httpclient"
-    );
+        );
 
     private final ConcurrentHashMap<String, Deque<Long>> requestTimestamps;
     private final long windowDurationMs;
     private final int maxRequestsPerWindow;
     private final boolean enabled;
+    private final boolean trustProxy;
+    private final ScheduledExecutorService cleaner;
 
     /**
      * Constructs a BotBouncerFilter with configurable rate limiting parameters.
@@ -61,11 +68,36 @@ public class BotBouncerFilter extends OncePerRequestFilter {
      * @param maxRequestsPerWindow the maximum allowed requests per IP within the time window
      * @param enabled whether the filter is enabled or not
      */
-    public BotBouncerFilter(long windowDurationMs, int maxRequestsPerWindow, boolean enabled) {
+    public BotBouncerFilter(long windowDurationMs, int maxRequestsPerWindow, boolean enabled, boolean trustProxy) {
         this.windowDurationMs = windowDurationMs;
         this.maxRequestsPerWindow = maxRequestsPerWindow;
         this.enabled = enabled;
+        this.trustProxy = trustProxy;
         this.requestTimestamps = new ConcurrentHashMap<>();
+        this.cleaner = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "velocitygate-cleaner");
+            t.setDaemon(true);
+            return t;
+        });
+
+        long initialDelay = Math.max(1000L, windowDurationMs);
+        long period = Math.max(1000L, windowDurationMs);
+        this.cleaner.scheduleWithFixedDelay(() -> {
+            try {
+                long now = System.currentTimeMillis();
+                long windowStart = now - this.windowDurationMs;
+                requestTimestamps.forEach((ip, deque) -> {
+                    requestTimestamps.computeIfPresent(ip, (k, d) -> {
+                        while (!d.isEmpty() && d.peekLast() < windowStart) {
+                            d.removeLast();
+                        }
+                        return d.isEmpty() ? null : d;
+                    });
+                });
+            } catch (Throwable t) {
+                // Keep cleaner alive on unexpected errors
+            }
+        }, initialDelay, period, TimeUnit.MILLISECONDS);
     }
 
     /**
@@ -112,7 +144,19 @@ public class BotBouncerFilter extends OncePerRequestFilter {
      * @return {@code true} if the request is malicious; {@code false} otherwise
      */
     private boolean isMalicious(String ip, String userAgent) {
-        return (userAgent == null || userAgent.isBlank() || BOT_SIGNATURES.stream().anyMatch(sig -> userAgent.toLowerCase().contains(sig))) || isVelocityAnomaly(ip);
+        boolean signatureMatch = false;
+        if (userAgent == null || userAgent.isBlank()) {
+            signatureMatch = true;
+        } else {
+            String ua = userAgent.toLowerCase(Locale.ROOT);
+            for (String sig : BOT_SIGNATURES) {
+                if (ua.contains(sig)) {
+                    signatureMatch = true;
+                    break;
+                }
+            }
+        }
+        return signatureMatch || isVelocityAnomaly(ip);
     }
 
     /**
@@ -132,23 +176,28 @@ public class BotBouncerFilter extends OncePerRequestFilter {
         long currentTime = System.currentTimeMillis();
         long windowStart = currentTime - windowDurationMs;
 
-        Deque<Long> timestamps = requestTimestamps.compute(ip, (key, deque) -> {
+        AtomicBoolean exceeded = new AtomicBoolean(false);
+        requestTimestamps.compute(ip, (key, deque) -> {
             if (deque == null) {
                 deque = new ArrayDeque<>();
             }
-            
+
             // Add current request timestamp
             deque.addFirst(currentTime);
-            
+
             // Remove timestamps outside the time window
             while (!deque.isEmpty() && deque.peekLast() < windowStart) {
                 deque.removeLast();
             }
-            
+
+            if (deque.size() > maxRequestsPerWindow) {
+                exceeded.set(true);
+            }
+
             return deque;
         });
 
-        return timestamps.size() > maxRequestsPerWindow;
+        return exceeded.get();
     }
 
     /**
@@ -162,12 +211,27 @@ public class BotBouncerFilter extends OncePerRequestFilter {
      * @return the resolved client IP address
      */
     private String extractClientIp(HttpServletRequest request) {
-        String xForwardedFor = request.getHeader(X_FORWARDED_FOR_HEADER);
-        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
-            String[] ips = xForwardedFor.split(",");
-            return ips[0].trim();
+        if (this.trustProxy) {
+            String xForwardedFor = request.getHeader(X_FORWARDED_FOR_HEADER);
+            if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+                String[] ips = xForwardedFor.split(",");
+                if (ips.length > 0) {
+                    return ips[0].trim();
+                }
+            }
         }
         return request.getRemoteAddr();
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        try {
+            if (cleaner != null && !cleaner.isShutdown()) {
+                cleaner.shutdownNow();
+            }
+        } finally {
+            super.finalize();
+        }
     }
 
     /**

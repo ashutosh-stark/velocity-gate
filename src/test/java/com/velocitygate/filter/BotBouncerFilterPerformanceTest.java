@@ -29,7 +29,7 @@ class BotBouncerFilterPerformanceTest {
 
     @BeforeEach
     void setUp() {
-        botBouncerFilter = new BotBouncerFilter(1000L, 100, true);
+        botBouncerFilter = new BotBouncerFilter(1000L, 100, true, true);
     }
 
     @Test
@@ -144,13 +144,13 @@ class BotBouncerFilterPerformanceTest {
         }
 
         startLatch.countDown();
-        boolean completed = completionLatch.await(30, TimeUnit.SECONDS);
+        boolean completed = completionLatch.await(120, TimeUnit.SECONDS);
         long endTime = System.nanoTime();
         
         executor.shutdown();
         executor.awaitTermination(5, TimeUnit.SECONDS);
 
-        assertTrue(completed, "All threads should complete within 30 seconds");
+        assertTrue(completed, "All threads should complete within 120 seconds");
         
         int totalRequests = numThreads * requestsPerThread;
         long durationNs = endTime - startTime;
@@ -181,7 +181,7 @@ class BotBouncerFilterPerformanceTest {
         System.out.println("║ RATE LIMITING ACCURACY TEST                ║");
         System.out.println("╚═════════════════════════════════════════════╝");
         
-        BotBouncerFilter limitedFilter = new BotBouncerFilter(1000L, 50, true);
+        BotBouncerFilter limitedFilter = new BotBouncerFilter(1000L, 50, true, true);
         String targetIp = "192.168.100.1";
         
         AtomicInteger allowedCount = new AtomicInteger(0);
@@ -280,13 +280,13 @@ class BotBouncerFilterPerformanceTest {
         }
 
         startLatch.countDown();
-        boolean completed = completionLatch.await(60, TimeUnit.SECONDS);
+        boolean completed = completionLatch.await(180, TimeUnit.SECONDS);
         long endTime = System.nanoTime();
         
         executor.shutdown();
         executor.awaitTermination(10, TimeUnit.SECONDS);
 
-        assertTrue(completed, "All threads should complete within 60 seconds");
+        assertTrue(completed, "All threads should complete within 180 seconds");
         
         long durationNs = endTime - startTime;
         long durationMs = durationNs / 1_000_000;

@@ -44,8 +44,9 @@ public class VelocityGateAutoConfiguration {
     public FilterRegistrationBean<BotBouncerFilter> botBouncerFilter(
             @Value("${velocitygate.window.duration.ms:1000}") long windowDurationMs,
             @Value("${velocitygate.max.requests.per.window:50}") int maxRequestsPerWindow,
-            @Value("${velocitygate.enabled:true}") boolean enabled) {
-        BotBouncerFilter filter = new BotBouncerFilter(windowDurationMs, maxRequestsPerWindow, enabled);
+            @Value("${velocitygate.enabled:true}") boolean enabled,
+            @Value("${velocitygate.proxy.trusted:false}") boolean trustProxy) {
+        BotBouncerFilter filter = new BotBouncerFilter(windowDurationMs, maxRequestsPerWindow, enabled, trustProxy);
         FilterRegistrationBean<BotBouncerFilter> bean = new FilterRegistrationBean<>(filter);
         bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
         bean.addUrlPatterns("/*");
