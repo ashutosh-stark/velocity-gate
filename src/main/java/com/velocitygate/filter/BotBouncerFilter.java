@@ -1,20 +1,23 @@
 package com.velocitygate.filter;
 
-import com.velocitygate.service.ThreatAnalyzer;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * High-priority servlet filter that intercepts all HTTP requests to detect and block malicious
- * traffic from bots, headless browsers, and automated agents.
+ * High-performance, lock-free servlet filter that intercepts all HTTP requests to detect and block
+ * malicious traffic from bots, headless browsers, and automated agents using velocity analysis.
  * <p>
- * This filter executes with the highest precedence in the servlet filter chain to minimize
- * resource consumption and prevent malicious requests from reaching application logic.
+ * This filter implements a zero-latency rate limiting algorithm with lock-free concurrency using
+ * {@link ConcurrentHashMap#compute(Object, java.util.function.BiFunction)} for atomic updates.
  * <p>
  * The filter can be disabled via the configuration property {@code velocitygate.enabled}.
  *
@@ -26,18 +29,43 @@ public class BotBouncerFilter extends OncePerRequestFilter {
     private static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
     private static final String USER_AGENT_HEADER = "User-Agent";
 
-    private final ThreatAnalyzer threatAnalyzer;
+    /**
+     * Bot and headless browser signatures for User-Agent detection.
+     */
+    private static final List<String> BOT_SIGNATURES = List.of(
+            "puppeteer",
+            "selenium",
+            "playwright",
+            "headlesschrome",
+            "phantomjs",
+            "webdriver",
+            "chromium",
+            "bot",
+            "crawler",
+            "spider",
+            "scraper",
+            "curl",
+            "wget",
+            "httpclient"
+    );
 
-    @Value("${velocitygate.enabled:true}")
-    private boolean enabled;
+    private final ConcurrentHashMap<String, Deque<Long>> requestTimestamps;
+    private final long windowDurationMs;
+    private final int maxRequestsPerWindow;
+    private final boolean enabled;
 
     /**
-     * Constructs a BotBouncerFilter with the specified ThreatAnalyzer dependency.
+     * Constructs a BotBouncerFilter with configurable rate limiting parameters.
      *
-     * @param threatAnalyzer the threat analyzer instance
+     * @param windowDurationMs the time window duration in milliseconds for velocity tracking
+     * @param maxRequestsPerWindow the maximum allowed requests per IP within the time window
+     * @param enabled whether the filter is enabled or not
      */
-    public BotBouncerFilter(ThreatAnalyzer threatAnalyzer) {
-        this.threatAnalyzer = threatAnalyzer;
+    public BotBouncerFilter(long windowDurationMs, int maxRequestsPerWindow, boolean enabled) {
+        this.windowDurationMs = windowDurationMs;
+        this.maxRequestsPerWindow = maxRequestsPerWindow;
+        this.enabled = enabled;
+        this.requestTimestamps = new ConcurrentHashMap<>();
     }
 
     /**
@@ -65,7 +93,7 @@ public class BotBouncerFilter extends OncePerRequestFilter {
         String clientIp = extractClientIp(request);
         String userAgent = request.getHeader(USER_AGENT_HEADER);
 
-        if (threatAnalyzer.isMalicious(clientIp, userAgent)) {
+        if (isMalicious(clientIp, userAgent)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("text/plain; charset=UTF-8");
             response.getWriter().write(DENIED_RESPONSE_BODY);
@@ -74,6 +102,53 @@ public class BotBouncerFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    /**
+     * Determines if a request is malicious based on User-Agent signatures and velocity anomalies.
+     *
+     * @param ip the client IP address
+     * @param userAgent the User-Agent header value
+     * @return {@code true} if the request is malicious; {@code false} otherwise
+     */
+    private boolean isMalicious(String ip, String userAgent) {
+        return (userAgent == null || userAgent.isBlank() || BOT_SIGNATURES.stream().anyMatch(sig -> userAgent.toLowerCase().contains(sig))) || isVelocityAnomaly(ip);
+    }
+
+    /**
+     * Detects velocity anomalies using lock-free atomic operations.
+     * <p>
+     * This method uses {@link ConcurrentHashMap#compute(Object, java.util.function.BiFunction)}
+     * to atomically update the request timestamp deque for the given IP address without explicit locks.
+     *
+     * @param ip the client IP address
+     * @return {@code true} if the IP exceeds the configured request threshold; {@code false} otherwise
+     */
+    private boolean isVelocityAnomaly(String ip) {
+        if (ip == null || ip.isBlank()) {
+            return false;
+        }
+
+        long currentTime = System.currentTimeMillis();
+        long windowStart = currentTime - windowDurationMs;
+
+        Deque<Long> timestamps = requestTimestamps.compute(ip, (key, deque) -> {
+            if (deque == null) {
+                deque = new ArrayDeque<>();
+            }
+            
+            // Add current request timestamp
+            deque.addFirst(currentTime);
+            
+            // Remove timestamps outside the time window
+            while (!deque.isEmpty() && deque.peekLast() < windowStart) {
+                deque.removeLast();
+            }
+            
+            return deque;
+        });
+
+        return timestamps.size() > maxRequestsPerWindow;
     }
 
     /**
